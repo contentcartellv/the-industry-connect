@@ -25,14 +25,13 @@ const firebaseConfig = {
   messagingSenderId: "123456789",
   appId: "1:123456789:web:abcd1234"
 };
-
 // Initialize Firebase safely
 let app, auth, db;
 const appId = "the-industry-connect-prod";
 
 try {
   const config = typeof __firebase_config !== 'undefined' 
-    ? JSON.parse(__firebase_config) 
+    ? (typeof __firebase_config === 'string' ? JSON.parse(__firebase_config) : __firebase_config)
     : firebaseConfig;
 
   if (getApps().length === 0) {
@@ -103,6 +102,18 @@ const initialDirectoryData = {
   ]
 };
 
+// Map fallback list into clean flat objects with stable, unique IDs
+const fallbackContactsArray = [];
+Object.entries(initialDirectoryData).forEach(([category, items]) => {
+  items.forEach((item, index) => {
+    fallbackContactsArray.push({
+      id: `fallback-${category}-${index}`,
+      category,
+      ...item
+    });
+  });
+});
+
 const CATEGORIES = ["Labels & A&R", "Streaming", "Radio Directors", "Retail & Brand", "DJs"];
 
 const categoryIcons = {
@@ -118,20 +129,26 @@ const SplashScreen = ({ onComplete }) => {
   const [progress, setProgress] = useState(0);
   const [fadeOut, setFadeOut] = useState(false);
 
+  // Interval timer for progress state (React 18 Strict-mode safe design)
   useEffect(() => {
-    const interval = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          setTimeout(() => setFadeOut(true), 400);
-          setTimeout(() => onComplete(), 900);
-          return 100;
-        }
-        return prev + Math.floor(Math.random() * 20) + 5;
-      });
+    if (progress >= 100) return;
+    const timer = setTimeout(() => {
+      setProgress((prev) => Math.min(prev + Math.floor(Math.random() * 20) + 5, 100));
     }, 80);
-    return () => clearInterval(interval);
-  }, [onComplete]);
+    return () => clearTimeout(timer);
+  }, [progress]);
+
+  // Clean trigger out transitions once loading reaches 100%
+  useEffect(() => {
+    if (progress >= 100) {
+      const fadeTimer = setTimeout(() => setFadeOut(true), 400);
+      const completeTimer = setTimeout(() => onComplete(), 900);
+      return () => {
+        clearTimeout(fadeTimer);
+        clearTimeout(completeTimer);
+      };
+    }
+  }, [progress, onComplete]);
 
   return (
     <div className={`fixed inset-0 bg-neutral-950 z-50 flex flex-col items-center justify-center p-6 transition-all duration-700 ${fadeOut ? 'opacity-0 scale-105 pointer-events-none' : 'opacity-100'}`}>
@@ -446,6 +463,7 @@ export default function App() {
     }
   }, [loading, contacts, user]);
 
+  // Merge Firestore streams with direct memory objects if database is loading or unconfigured
   const activeContacts = useMemo(() => {
     return contacts.length > 0 ? contacts : fallbackContactsArray;
   }, [contacts]);
@@ -543,9 +561,13 @@ export default function App() {
     );
   };
 
-  // Update outreach log notes in Firestore
+  // Update outreach log notes in Firestore or Local state
   const handleUpdateNotes = async (contactId, notesText) => {
-    if (!db) return;
+    if (!db) {
+      // Local state fallback if offline/unconfigured
+      setContacts(prev => prev.map(c => c.id === contactId ? { ...c, notes: notesText } : c));
+      return;
+    }
     try {
       const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'contacts', contactId);
       await updateDoc(docRef, { notes: notesText });
@@ -557,7 +579,17 @@ export default function App() {
   // Security Email Authorization Actions
   const handleAdminAuthAction = async (e) => {
     e.preventDefault();
-    if (!auth) return;
+    if (!auth) {
+      // Offline Admin bypass for test development
+      if (authEmail === "admin@theindustryconnect.com" && authPassword === "123456") {
+        setIsAdmin(true);
+        setUserEmail("offline-admin");
+        setShowAdminLogin(false);
+      } else {
+        setLoginError("Offline Mode: use admin@theindustryconnect.com / 123456");
+      }
+      return;
+    }
     setLoginError("");
     
     try {
@@ -575,7 +607,11 @@ export default function App() {
   };
 
   const handleAdminSignOut = async () => {
-    if (!auth) return;
+    if (!auth) {
+      setIsAdmin(false);
+      setUserEmail("");
+      return;
+    }
     try {
       await signOut(auth);
       await signInAnonymously(auth); // Keep read connections alive anonymously
@@ -608,8 +644,24 @@ export default function App() {
 
   const handleSaveContact = async (e) => {
     e.preventDefault();
-    if (!db) return;
     setIsSaving(true);
+    
+    if (!db) {
+      // Local state fallback if offline/unconfigured
+      if (editingContact) {
+        setContacts(prev => prev.map(c => c.id === editingContact.id ? { ...formData } : c));
+      } else {
+        const newContact = { 
+          ...formData, 
+          id: `local-${Date.now()}` 
+        };
+        setContacts(prev => [newContact, ...prev]);
+      }
+      setIsModalOpen(false);
+      setIsSaving(false);
+      return;
+    }
+
     try {
       const contactsRef = collection(db, 'artifacts', appId, 'public', 'data', 'contacts');
       if (editingContact && editingContact.id) {
@@ -627,11 +679,17 @@ export default function App() {
   };
 
   const handleDeleteContact = async (contactId) => {
-    if (!db) return;
+    if (!db) {
+      // Local state fallback if offline/unconfigured
+      setContacts(prev => prev.filter(c => c.id !== contactId));
+      return;
+    }
+
     if (contactId.startsWith("fallback-")) {
       setContacts(prev => prev.filter(c => c.id !== contactId));
       return;
     }
+
     try {
       const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'contacts', contactId);
       await deleteDoc(docRef);
@@ -643,7 +701,7 @@ export default function App() {
   // Bulk Ingestion Processors
   const handleBulkIngest = async (e) => {
     e.preventDefault();
-    if (!db || !bulkCsvText.trim()) return;
+    if (!bulkCsvText.trim()) return;
     setBulkError("");
     setIsSaving(true);
 
@@ -652,7 +710,6 @@ export default function App() {
       const headers = rows[0].split(",").map(h => h.trim().toLowerCase());
       
       const parsedContacts = [];
-      const contactsRef = collection(db, 'artifacts', appId, 'public', 'data', 'contacts');
 
       for (let i = 1; i < rows.length; i++) {
         if (!rows[i].trim()) continue;
@@ -684,9 +741,19 @@ export default function App() {
         throw new Error("Could not parse any valid entries. Verify your first row contains headers like 'Title, Name, Email, Phone, Location'.");
       }
 
-      // Add parsed batches to Firestore
-      for (const batchEntry of parsedContacts) {
-        await addDoc(contactsRef, batchEntry);
+      if (!db) {
+        // Local state fallback if offline/unconfigured
+        const newContacts = parsedContacts.map((c, index) => ({
+          ...c,
+          id: `local-bulk-${Date.now()}-${index}`
+        }));
+        setContacts(prev => [...newContacts, ...prev]);
+      } else {
+        // Add parsed batches to Firestore
+        const contactsRef = collection(db, 'artifacts', appId, 'public', 'data', 'contacts');
+        for (const batchEntry of parsedContacts) {
+          await addDoc(contactsRef, batchEntry);
+        }
       }
 
       setBulkCsvText("");
