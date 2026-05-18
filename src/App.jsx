@@ -2,7 +2,8 @@ import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { 
   Search, MapPin, Phone, Mail, User, Building2, Headphones, Radio, ShoppingBag, Music, 
   Copy, CheckCircle2, Edit3, Trash2, Plus, Lock, X, AlertCircle, Sparkles, SlidersHorizontal, 
-  Filter, Star, LogIn, LogOut, Upload, FileSpreadsheet, ClipboardList, Send, Calendar, CheckSquare, RefreshCw
+  Filter, Star, LogIn, LogOut, Upload, FileSpreadsheet, ClipboardList, Send, Calendar, CheckSquare, RefreshCw,
+  Shield, CreditCard, CheckCircle, Flame, ArrowRight, Eye, EyeOff, Key
 } from 'lucide-react';
 import { initializeApp, getApps } from 'firebase/app';
 import { 
@@ -15,7 +16,7 @@ import {
 
 // ============================================================================
 // 🔑 FIREBASE CONFIGURATION
-// Replace these with your actual credentials from the Firebase Web App setup.
+// Replace these with your actual credentials from your Firebase Console.
 // ============================================================================
 const firebaseConfig = {
   apiKey: "AIzaSy...",
@@ -25,6 +26,7 @@ const firebaseConfig = {
   messagingSenderId: "123456789",
   appId: "1:123456789:web:abcd1234"
 };
+
 // Initialize Firebase safely
 let app, auth, db;
 const appId = "the-industry-connect-prod";
@@ -102,7 +104,6 @@ const initialDirectoryData = {
   ]
 };
 
-// Map fallback list into clean flat objects with stable, unique IDs
 const fallbackContactsArray = [];
 Object.entries(initialDirectoryData).forEach(([category, items]) => {
   items.forEach((item, index) => {
@@ -129,20 +130,18 @@ const SplashScreen = ({ onComplete }) => {
   const [progress, setProgress] = useState(0);
   const [fadeOut, setFadeOut] = useState(false);
 
-  // Interval timer for progress state (React 18 Strict-mode safe design)
   useEffect(() => {
     if (progress >= 100) return;
     const timer = setTimeout(() => {
-      setProgress((prev) => Math.min(prev + Math.floor(Math.random() * 20) + 5, 100));
-    }, 80);
+      setProgress((prev) => Math.min(prev + Math.floor(Math.random() * 20) + 10, 100));
+    }, 60);
     return () => clearTimeout(timer);
   }, [progress]);
 
-  // Clean trigger out transitions once loading reaches 100%
   useEffect(() => {
     if (progress >= 100) {
-      const fadeTimer = setTimeout(() => setFadeOut(true), 400);
-      const completeTimer = setTimeout(() => onComplete(), 900);
+      const fadeTimer = setTimeout(() => setFadeOut(true), 300);
+      const completeTimer = setTimeout(() => onComplete(), 800);
       return () => {
         clearTimeout(fadeTimer);
         clearTimeout(completeTimer);
@@ -153,7 +152,7 @@ const SplashScreen = ({ onComplete }) => {
   return (
     <div className={`fixed inset-0 bg-neutral-950 z-50 flex flex-col items-center justify-center p-6 transition-all duration-700 ${fadeOut ? 'opacity-0 scale-105 pointer-events-none' : 'opacity-100'}`}>
       <div className="relative flex flex-col items-center max-w-sm w-full">
-        <div className="w-24 h-24 bg-gradient-to-br from-amber-400 to-amber-600 rounded-2xl flex items-center justify-center shadow-2xl shadow-amber-500/20 animate-pulse relative mb-8 group">
+        <div className="w-24 h-24 bg-gradient-to-br from-amber-400 to-amber-600 rounded-2xl flex items-center justify-center shadow-2xl shadow-amber-500/20 animate-pulse relative mb-8">
           <div className="absolute inset-0.5 bg-neutral-950 rounded-[14px] flex items-center justify-center">
             <svg className="w-12 h-12 text-amber-500" viewBox="0 0 24 24" fill="currentColor">
               <path d="M11 21c-.4 0-.8-.2-1-.6-.3-.5-.2-1.1.2-1.4l5.6-4H10c-.4 0-.8-.2-1-.6-.2-.4-.2-.9 0-1.3l4-7c.3-.5.9-.7 1.4-.4.5.3.7.9.4 1.4L10.2 11H15c.4 0 .8.2 1 .6.2.4.2.9 0 1.3l-4 7c-.2.3-.6.5-1 .5z"/>
@@ -174,7 +173,7 @@ const SplashScreen = ({ onComplete }) => {
           />
         </div>
         <div className="flex justify-between w-full mt-2 text-[10px] font-mono text-neutral-500 tracking-wider">
-          <span>CONNECTING INTEGRATIONS...</span>
+          <span>CONNECTING SECURE SHELL...</span>
           <span>{Math.min(progress, 100)}%</span>
         </div>
       </div>
@@ -182,12 +181,16 @@ const SplashScreen = ({ onComplete }) => {
   );
 };
 
-// --- CONTACT CARD COMPONENT ---
+// --- CONTACT CARD COMPONENT (Click-to-Reveal Data Masking) ---
 const ContactCard = ({ data, isAdmin, isBookmarked, onToggleBookmark, onEdit, onDelete, onUpdateNotes }) => {
   const [copied, setCopied] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showNotesEditor, setShowNotesEditor] = useState(false);
   const [tempNotes, setTempNotes] = useState(data.notes || "");
+  
+  // Obfuscation states to prevent automatic scanning and scraping
+  const [revealedEmail, setRevealedEmail] = useState(false);
+  const [revealedPhone, setRevealedPhone] = useState(false);
 
   const handleCopy = (text) => {
     navigator.clipboard.writeText(text);
@@ -201,20 +204,20 @@ const ContactCard = ({ data, isAdmin, isBookmarked, onToggleBookmark, onEdit, on
   };
 
   return (
-    <div className="bg-neutral-800/50 border border-neutral-700/40 rounded-xl p-5 hover:bg-neutral-800 transition-all hover:border-neutral-600 shadow-lg flex flex-col h-full relative group">
+    <div className="bg-neutral-800/40 border border-neutral-700/30 rounded-xl p-5 hover:bg-neutral-800 transition-all hover:border-neutral-600 shadow-lg flex flex-col h-full relative group">
       
-      {/* Favorite/Bookmark Toggle */}
+      {/* Bookmark Toggle */}
       <button 
         onClick={() => onToggleBookmark(data.id)}
-        className="absolute top-4 right-4 z-10 p-1 rounded bg-neutral-900/60 border border-neutral-700/40 hover:bg-neutral-800 text-amber-500 transition-all opacity-100 md:opacity-0 md:group-hover:opacity-100"
+        className="absolute top-4 right-4 z-10 p-1.5 rounded bg-neutral-900/60 border border-neutral-700/40 hover:bg-neutral-800 text-amber-500 transition-all opacity-100 md:opacity-0 md:group-hover:opacity-100"
         title="Toggle Favorite"
       >
         <Star size={14} fill={isBookmarked ? "currentColor" : "none"} />
       </button>
 
-      {/* Admin Controls Overlay */}
+      {/* Admin Panel Controls */}
       {isAdmin && (
-        <div className="absolute top-4 right-12 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity bg-neutral-900/80 p-1 rounded-lg backdrop-blur-sm z-10 border border-neutral-700">
+        <div className="absolute top-4 right-12 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-neutral-900/85 p-1 rounded-lg backdrop-blur-sm z-10 border border-neutral-700">
           <button onClick={() => onEdit(data)} className="p-1 text-blue-400 hover:bg-blue-400/20 rounded transition-colors" title="Edit Contact">
             <Edit3 size={13} />
           </button>
@@ -266,16 +269,27 @@ const ContactCard = ({ data, isAdmin, isBookmarked, onToggleBookmark, onEdit, on
           <div className="flex items-start gap-2.5">
             <Mail className="text-neutral-500 mt-0.5 shrink-0" size={15} />
             <div className="flex items-center gap-1.5 flex-wrap">
-              <a href={`mailto:${data.email}`} className="text-amber-400 hover:text-amber-300 hover:underline break-all font-medium">
-                {data.email}
-              </a>
-              <button 
-                onClick={() => handleCopy(data.email)}
-                className="text-neutral-500 hover:text-white transition-colors p-0.5 rounded hover:bg-neutral-700"
-                title="Copy Email"
-              >
-                {copied ? <CheckCircle2 size={12} className="text-green-400" /> : <Copy size={12} />}
-              </button>
+              {revealedEmail ? (
+                <>
+                  <a href={`mailto:${data.email}`} className="text-amber-400 hover:text-amber-300 hover:underline break-all font-medium">
+                    {data.email}
+                  </a>
+                  <button 
+                    onClick={() => handleCopy(data.email)}
+                    className="text-neutral-500 hover:text-white transition-colors p-0.5 rounded hover:bg-neutral-700"
+                    title="Copy Email"
+                  >
+                    {copied ? <CheckCircle2 size={12} className="text-green-400" /> : <Copy size={12} />}
+                  </button>
+                </>
+              ) : (
+                <button 
+                  onClick={() => setRevealedEmail(true)} 
+                  className="px-2 py-0.5 rounded bg-neutral-750 hover:bg-neutral-700 text-amber-500/80 text-[10px] font-bold border border-neutral-700 transition-all flex items-center gap-1"
+                >
+                  <Eye size={10} /> Show Email
+                </button>
+              )}
             </div>
           </div>
         )}
@@ -283,9 +297,18 @@ const ContactCard = ({ data, isAdmin, isBookmarked, onToggleBookmark, onEdit, on
         {data.phone && data.phone !== "N/A" && (
           <div className="flex items-start gap-2.5">
             <Phone className="text-neutral-500 mt-0.5 shrink-0" size={15} />
-            <a href={`tel:${data.phone.replace(/[^0-9]/g, '')}`} className="text-neutral-300 hover:text-white">
-              {data.phone}
-            </a>
+            {revealedPhone ? (
+              <a href={`tel:${data.phone.replace(/[^0-9]/g, '')}`} className="text-neutral-300 hover:text-white font-medium">
+                {data.phone}
+              </a>
+            ) : (
+              <button 
+                onClick={() => setRevealedPhone(true)} 
+                className="px-2 py-0.5 rounded bg-neutral-750 hover:bg-neutral-700 text-amber-500/80 text-[10px] font-bold border border-neutral-700 transition-all flex items-center gap-1"
+              >
+                <Eye size={10} /> Show Phone
+              </button>
+            )}
           </div>
         )}
 
@@ -314,7 +337,7 @@ const ContactCard = ({ data, isAdmin, isBookmarked, onToggleBookmark, onEdit, on
             <textarea
               value={tempNotes}
               onChange={(e) => setTempNotes(e.target.value)}
-              placeholder="e.g. Sent demo pack on 5/15. Follow up next week."
+              placeholder="e.g. Sent promo pack on 5/15."
               rows={2}
               className="w-full text-xs p-2 bg-neutral-900 border border-neutral-700 rounded text-neutral-200 placeholder-neutral-600 focus:outline-none focus:border-amber-500"
             />
@@ -351,7 +374,21 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
   const [userEmail, setUserEmail] = useState("");
+
+  // Paywall and Gatekeeping Control Flags
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [showGateScreen, setShowGateScreen] = useState(true);
+  const [gateEmail, setGateEmail] = useState("");
+  const [gatePassword, setGatePassword] = useState("");
+  const [gateAction, setGateAction] = useState("LOGIN"); // "LOGIN", "SIGNUP", "PAYWALL", "OFFLINE"
+  const [gateError, setGateError] = useState("");
   
+  // Stripe Simulated payment states
+  const [cardNumber, setCardNumber] = useState("");
+  const [cardExpiry, setCardExpiry] = useState("");
+  const [cardCvc, setCardCvc] = useState("");
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+
   // Bookmark local-cache persistence
   const [bookmarks, setBookmarks] = useState(() => {
     try {
@@ -362,7 +399,7 @@ export default function App() {
     }
   });
 
-  // Admin and Auth Management Panel
+  // Admin Configuration Parameters
   const [isAdmin, setIsAdmin] = useState(false);
   const [showAdminLogin, setShowAdminLogin] = useState(false);
   const [authEmail, setAuthEmail] = useState("");
@@ -394,20 +431,21 @@ export default function App() {
       setLoading(false);
       return;
     }
-    const initAuth = async () => {
-      try {
-        await signInAnonymously(auth);
-      } catch (error) {
-        console.error("Firebase auth link failure:", error);
-      }
-    };
-    initAuth();
     
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       if (currentUser && !currentUser.isAnonymous) {
-        setIsAdmin(true); // Elevate privileges if they signed in with credentials
         setUserEmail(currentUser.email);
+        // If email ends with connect-admin, grant Admin rights, otherwise they are regular paying users
+        if (currentUser.email.includes("admin")) {
+          setIsAdmin(true);
+          setIsSubscribed(true);
+          setShowGateScreen(false);
+        } else {
+          setIsAdmin(false);
+          setIsSubscribed(true); // Treat signed-in emails as active subscribers
+          setShowGateScreen(false);
+        }
       } else {
         setIsAdmin(false);
         setUserEmail("");
@@ -442,7 +480,6 @@ export default function App() {
         try {
           const contactsRef = collection(db, 'artifacts', appId, 'public', 'data', 'contacts');
           
-          // Map initial data items into single, clean Firestore records
           const fallbackData = [];
           Object.entries(initialDirectoryData).forEach(([category, items]) => {
             items.forEach((item) => {
@@ -463,7 +500,6 @@ export default function App() {
     }
   }, [loading, contacts, user]);
 
-  // Merge Firestore streams with direct memory objects if database is loading or unconfigured
   const activeContacts = useMemo(() => {
     return contacts.length > 0 ? contacts : fallbackContactsArray;
   }, [contacts]);
@@ -502,7 +538,6 @@ export default function App() {
   const filteredData = useMemo(() => {
     let output = activeContacts.filter(c => c.category === activeTab);
     
-    // Filter by bookmarks if toggled
     if (viewFavoritesOnly) {
       output = output.filter(item => bookmarks.includes(item.id));
     }
@@ -564,7 +599,6 @@ export default function App() {
   // Update outreach log notes in Firestore or Local state
   const handleUpdateNotes = async (contactId, notesText) => {
     if (!db) {
-      // Local state fallback if offline/unconfigured
       setContacts(prev => prev.map(c => c.id === contactId ? { ...c, notes: notesText } : c));
       return;
     }
@@ -576,45 +610,90 @@ export default function App() {
     }
   };
 
-  // Security Email Authorization Actions
-  const handleAdminAuthAction = async (e) => {
+  // Gateway Account Sign-Up & Sign-In Controllers (Subscription Validation)
+  const handleGateAuthentication = async (e) => {
     e.preventDefault();
+    setGateError("");
+    
     if (!auth) {
-      // Offline Admin bypass for test development
-      if (authEmail === "admin@theindustryconnect.com" && authPassword === "123456") {
+      // Local developer auth credentials bypass
+      if (gateEmail === "admin@theindustryconnect.com" && gatePassword === "123456") {
         setIsAdmin(true);
+        setIsSubscribed(true);
+        setShowGateScreen(false);
         setUserEmail("offline-admin");
-        setShowAdminLogin(false);
+      } else if (gateEmail === "subscriber@theindustryconnect.com" && gatePassword === "123456") {
+        setIsAdmin(false);
+        setIsSubscribed(true);
+        setShowGateScreen(false);
+        setUserEmail("offline-subscriber");
       } else {
-        setLoginError("Offline Mode: use admin@theindustryconnect.com / 123456");
+        setGateError("Offline Dev Auth: Use admin@theindustryconnect.com or subscriber@theindustryconnect.com (Pass: 123456)");
       }
       return;
     }
-    setLoginError("");
-    
+
     try {
-      if (isRegistering) {
-        await createUserWithEmailAndPassword(auth, authEmail, authPassword);
-      } else {
-        await signInWithEmailAndPassword(auth, authEmail, authPassword);
+      if (gateAction === "LOGIN") {
+        await signInWithEmailAndPassword(auth, gateEmail, gatePassword);
+      } else if (gateAction === "SIGNUP") {
+        // Redirect signup flow onto paywall registration screen
+        setGateAction("PAYWALL");
       }
-      setShowAdminLogin(false);
-      setAuthEmail("");
-      setAuthPassword("");
     } catch (err) {
-      setLoginError(err.message.replace("Firebase:", ""));
+      setGateError(err.message.replace("Firebase:", ""));
     }
   };
 
-  const handleAdminSignOut = async () => {
+  // Simulated Securestripe Payment confirmation flow
+  const handleSimulatePayment = async (e) => {
+    e.preventDefault();
+    setGateError("");
+    setIsProcessingPayment(true);
+
+    if (!cardNumber || !cardExpiry || !cardCvc) {
+      setGateError("Please complete all credit card fields.");
+      setIsProcessingPayment(false);
+      return;
+    }
+
+    // Simulate 1.5s server-side secure validation call
+    setTimeout(async () => {
+      try {
+        if (!auth) {
+          // Local offline registration bypass
+          setIsSubscribed(true);
+          setShowGateScreen(false);
+          setUserEmail(gateEmail);
+        } else {
+          // Register account on Firebase Authentication Database
+          await createUserWithEmailAndPassword(auth, gateEmail, gatePassword);
+        }
+        setIsProcessingPayment(false);
+        setShowGateScreen(false);
+        alert("Subscription Active: Welcome to The Industry Connect Ecosystem!");
+      } catch (err) {
+        setGateError(err.message.replace("Firebase:", ""));
+        setIsProcessingPayment(false);
+      }
+    }, 1500);
+  };
+
+  const handleSignOutUser = async () => {
     if (!auth) {
       setIsAdmin(false);
+      setIsSubscribed(false);
+      setShowGateScreen(true);
+      setGateAction("LOGIN");
       setUserEmail("");
       return;
     }
     try {
       await signOut(auth);
-      await signInAnonymously(auth); // Keep read connections alive anonymously
+      setIsAdmin(false);
+      setIsSubscribed(false);
+      setShowGateScreen(true);
+      setGateAction("LOGIN");
     } catch (err) {
       console.error("Sign out process failed:", err);
     }
@@ -647,7 +726,6 @@ export default function App() {
     setIsSaving(true);
     
     if (!db) {
-      // Local state fallback if offline/unconfigured
       if (editingContact) {
         setContacts(prev => prev.map(c => c.id === editingContact.id ? { ...formData } : c));
       } else {
@@ -680,7 +758,6 @@ export default function App() {
 
   const handleDeleteContact = async (contactId) => {
     if (!db) {
-      // Local state fallback if offline/unconfigured
       setContacts(prev => prev.filter(c => c.id !== contactId));
       return;
     }
@@ -714,7 +791,6 @@ export default function App() {
       for (let i = 1; i < rows.length; i++) {
         if (!rows[i].trim()) continue;
         
-        // Simple regex CSV parsing logic to handle inner quotation marks correctly
         const rowValues = rows[i].match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || rows[i].split(",");
         const entry = { category: activeTab };
 
@@ -731,25 +807,22 @@ export default function App() {
           else if (header === "notes") entry.notes = value;
         });
 
-        // Ensure essential schema integrity
         if (entry.title) {
           parsedContacts.push(entry);
         }
       }
 
       if (parsedContacts.length === 0) {
-        throw new Error("Could not parse any valid entries. Verify your first row contains headers like 'Title, Name, Email, Phone, Location'.");
+        throw new Error("Could not parse any valid entries.");
       }
 
       if (!db) {
-        // Local state fallback if offline/unconfigured
         const newContacts = parsedContacts.map((c, index) => ({
           ...c,
           id: `local-bulk-${Date.now()}-${index}`
         }));
         setContacts(prev => [...newContacts, ...prev]);
       } else {
-        // Add parsed batches to Firestore
         const contactsRef = collection(db, 'artifacts', appId, 'public', 'data', 'contacts');
         for (const batchEntry of parsedContacts) {
           await addDoc(contactsRef, batchEntry);
@@ -773,483 +846,616 @@ export default function App() {
       {/* Launch entrance splash animation screen */}
       {showSplash && <SplashScreen onComplete={() => setShowSplash(false)} />}
 
-      {/* Navigation Header */}
-      <header className="bg-neutral-950 border-b border-neutral-800 sticky top-0 z-40 shadow-md">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 bg-amber-500 text-neutral-950 font-black rounded-lg flex items-center justify-center text-lg tracking-tighter">
-                  ⚡
-                </div>
-                <h1 className="text-xl md:text-2xl font-black text-white tracking-tight">
-                  THE INDUSTRY <span className="text-amber-500">CONNECT</span>
-                </h1>
-                {isAdmin && <span className="px-2 py-0.5 rounded bg-amber-500/10 text-amber-500 text-[10px] font-black uppercase tracking-widest border border-amber-500/20">Admin Privileges</span>}
+      {/* Security Gate & Onboarding Paywall Screen */}
+      {!showSplash && showGateScreen && (
+        <div className="fixed inset-0 bg-neutral-950 z-40 flex flex-col lg:flex-row">
+          
+          {/* Brand/Value Proposition Panel */}
+          <div className="lg:w-1/2 bg-neutral-900 border-b lg:border-b-0 lg:border-r border-neutral-800 p-8 lg:p-16 flex flex-col justify-between relative overflow-hidden">
+            <div className="absolute -top-32 -left-32 w-96 h-96 bg-amber-500/5 rounded-full blur-3xl" />
+            
+            <div className="relative z-10 flex items-center gap-2.5">
+              <div className="w-8 h-8 bg-amber-500 text-neutral-950 font-black rounded-lg flex items-center justify-center text-lg tracking-tighter">
+                ⚡
               </div>
-              <p className="text-neutral-400 mt-1 text-xs md:text-sm font-medium">
-                SaaS Outreach CRM & Vetted Hip-Hop industry network analytics.
+              <span className="text-xl font-black text-white tracking-tight uppercase">THE INDUSTRY <span className="text-amber-500">CONNECT</span></span>
+            </div>
+
+            <div className="relative z-10 my-12 max-w-lg">
+              <span className="px-3 py-1 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-full text-xs font-bold tracking-wide uppercase flex items-center gap-1.5 w-fit mb-6">
+                <Flame size={12} /> Value Proposition
+              </span>
+              <h2 className="text-3xl lg:text-4xl font-black text-white leading-tight tracking-tight mb-4">
+                Unlock 150+ Verified West Coast Music Industry Decision Makers
+              </h2>
+              <p className="text-neutral-400 text-sm leading-relaxed mb-8">
+                Skip the gatekeepers. Directly connect with A&Rs, Radio program directors, high-profile club DJs, and key streetwear curators from LA, the Bay Area, and Las Vegas. Perfect for independent artists who are ready to scale their career path.
               </p>
+
+              <div className="space-y-4">
+                <div className="flex items-start gap-3">
+                  <CheckCircle className="text-amber-500 shrink-0 mt-1" size={16} />
+                  <p className="text-xs text-neutral-300 font-medium"><strong className="text-white">Continuous CRM Verification:</strong> Our teams audit the directory to guarantee zero dead-ends or invalid contacts.</p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <CheckCircle className="text-amber-500 shrink-0 mt-1" size={16} />
+                  <p className="text-xs text-neutral-300 font-medium"><strong className="text-white">Outreach CRM Notes:</strong> Keep logs of past pitches and responses directly associated with each contact card.</p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <CheckCircle className="text-amber-500 shrink-0 mt-1" size={16} />
+                  <p className="text-xs text-neutral-300 font-medium"><strong className="text-white">Batch Campaigns:</strong> One-click bulk-copy email lists to target outreach efficiently.</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="relative z-10 text-[11px] text-neutral-500">
+              © 2026 The Industry Connect Ecosystem. Secured SaaS Directory Shell.
+            </div>
+          </div>
+
+          {/* Secure Interactive Transaction Panel */}
+          <div className="lg:w-1/2 p-8 lg:p-16 flex items-center justify-center bg-neutral-950">
+            <div className="max-w-md w-full">
+              
+              {/* Gate Mode Selectors */}
+              <div className="flex gap-4 border-b border-neutral-800 pb-5 mb-8">
+                <button 
+                  onClick={() => { setGateAction("LOGIN"); setGateError(""); }}
+                  className={`text-sm font-extrabold pb-2 border-b-2 transition-all ${gateAction === "LOGIN" ? "border-amber-500 text-white" : "border-transparent text-neutral-500 hover:text-neutral-300"}`}
+                >
+                  Log In
+                </button>
+                <button 
+                  onClick={() => { setGateAction("SIGNUP"); setGateError(""); }}
+                  className={`text-sm font-extrabold pb-2 border-b-2 transition-all ${["SIGNUP", "PAYWALL"].includes(gateAction) ? "border-amber-500 text-white" : "border-transparent text-neutral-500 hover:text-neutral-300"}`}
+                >
+                  Subscribe ($99/mo)
+                </button>
+              </div>
+
+              {/* Login UI Layer */}
+              {gateAction === "LOGIN" && (
+                <form onSubmit={handleGateAuthentication} className="space-y-4">
+                  <div>
+                    <label className="block text-[10px] font-bold uppercase tracking-wider text-neutral-400 mb-1">Email Address</label>
+                    <input 
+                      type="email" required value={gateEmail} onChange={(e) => setGateEmail(e.target.value)}
+                      placeholder="e.g. artist@mybrand.com"
+                      className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-4 py-3 text-white placeholder-neutral-600 focus:outline-none focus:border-amber-500 text-xs font-semibold"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-bold uppercase tracking-wider text-neutral-400 mb-1">Password</label>
+                    <input 
+                      type="password" required value={gatePassword} onChange={(e) => setGatePassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-4 py-3 text-white placeholder-neutral-600 focus:outline-none focus:border-amber-500 text-xs font-semibold"
+                    />
+                  </div>
+
+                  {gateError && <p className="text-red-400 text-xs bg-red-950/20 border border-red-800/30 p-2.5 rounded font-medium">{gateError}</p>}
+
+                  <button type="submit" className="w-full py-3 bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold rounded-lg transition-colors text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-amber-500/10">
+                    <span>Authenticate Account</span>
+                    <ArrowRight size={14} />
+                  </button>
+                </form>
+              )}
+
+              {/* Signup Setup UI Layer */}
+              {gateAction === "SIGNUP" && (
+                <form onSubmit={handleGateAuthentication} className="space-y-4">
+                  <div>
+                    <label className="block text-[10px] font-bold uppercase tracking-wider text-neutral-400 mb-1">Account Username / Email</label>
+                    <input 
+                      type="email" required value={gateEmail} onChange={(e) => setGateEmail(e.target.value)}
+                      placeholder="e.g. artist@mybrand.com"
+                      className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-4 py-3 text-white placeholder-neutral-600 focus:outline-none focus:border-amber-500 text-xs font-semibold"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-bold uppercase tracking-wider text-neutral-400 mb-1">Secure Password</label>
+                    <input 
+                      type="password" required value={gatePassword} onChange={(e) => setGatePassword(e.target.value)}
+                      placeholder="At least 6 characters"
+                      className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-4 py-3 text-white placeholder-neutral-600 focus:outline-none focus:border-amber-500 text-xs font-semibold"
+                    />
+                  </div>
+
+                  <button type="submit" className="w-full py-3 bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold rounded-lg transition-colors text-xs uppercase tracking-wider flex items-center justify-center gap-2">
+                    <span>Proceed to Secure Checkout</span>
+                    <ArrowRight size={14} />
+                  </button>
+                </form>
+              )}
+
+              {/* Stripe Simulated Checkout Screen */}
+              {gateAction === "PAYWALL" && (
+                <form onSubmit={handleSimulatePayment} className="space-y-4">
+                  <div className="bg-neutral-900 border border-neutral-850 p-4 rounded-xl mb-4">
+                    <span className="text-[10px] font-bold font-mono tracking-widest text-amber-500 block mb-1">MONTHLY MEMBERSHIP PLAN</span>
+                    <div className="flex justify-between items-baseline">
+                      <h4 className="text-xl font-black text-white">Full Platform Membership</h4>
+                      <span className="text-lg font-black text-white">$99 <span className="text-xs text-neutral-500">/ mo</span></span>
+                    </div>
+                    <p className="text-[11px] text-neutral-400 mt-2 leading-relaxed">Renews monthly, cancel anytime in one-click directly inside your personal account preferences.</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-bold uppercase tracking-wider text-neutral-400 mb-1">Cardholder Name</label>
+                    <input 
+                      type="text" required placeholder="e.g. Tina Davis"
+                      className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-4 py-2.5 text-white placeholder-neutral-600 focus:outline-none focus:border-amber-500 text-xs font-semibold"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-bold uppercase tracking-wider text-neutral-400 mb-1 flex items-center gap-1">
+                      <CreditCard size={11} /> Card Number
+                    </label>
+                    <input 
+                      type="text" required value={cardNumber} onChange={(e) => setCardNumber(e.target.value)}
+                      placeholder="•••• •••• •••• ••••"
+                      className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-4 py-2.5 text-white placeholder-neutral-600 focus:outline-none focus:border-amber-500 text-xs font-semibold"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-[10px] font-bold uppercase tracking-wider text-neutral-400 mb-1">Expiry Date</label>
+                      <input 
+                        type="text" required value={cardExpiry} onChange={(e) => setCardExpiry(e.target.value)}
+                        placeholder="MM / YY"
+                        className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-4 py-2.5 text-white placeholder-neutral-600 focus:outline-none focus:border-amber-500 text-xs font-semibold"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold uppercase tracking-wider text-neutral-400 mb-1">CVC Code</label>
+                      <input 
+                        type="text" required value={cardCvc} onChange={(e) => setCardCvc(e.target.value)}
+                        placeholder="•••"
+                        className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-4 py-2.5 text-white placeholder-neutral-600 focus:outline-none focus:border-amber-500 text-xs font-semibold"
+                      />
+                    </div>
+                  </div>
+
+                  {gateError && <p className="text-red-400 text-xs bg-red-950/20 border border-red-800/30 p-2.5 rounded font-medium">{gateError}</p>}
+
+                  <button type="submit" disabled={isProcessingPayment} className="w-full py-3 bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold rounded-lg transition-colors text-xs uppercase tracking-wider flex items-center justify-center gap-2">
+                    {isProcessingPayment ? <RefreshCw className="animate-spin" size={14} /> : <Shield size={14} />}
+                    <span>{isProcessingPayment ? "Verifying Transaction..." : "Activate Membership Access"}</span>
+                  </button>
+                  
+                  <div className="text-center">
+                    <button type="button" onClick={() => setGateAction("SIGNUP")} className="text-xs text-neutral-500 hover:text-white underline">
+                      Go Back
+                    </button>
+                  </div>
+                </form>
+              )}
+
+            </div>
+          </div>
+
+        </div>
+      )}
+
+      {/* Main Platform Application (Protected behind Onboarding gateway state) */}
+      {!showSplash && !showGateScreen && isSubscribed && (
+        <>
+          {/* Navigation Header */}
+          <header className="bg-neutral-950 border-b border-neutral-800 sticky top-0 z-40 shadow-md">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 bg-amber-500 text-neutral-950 font-black rounded-lg flex items-center justify-center text-lg tracking-tighter">
+                      ⚡
+                    </div>
+                    <h1 className="text-xl md:text-2xl font-black text-white tracking-tight">
+                      THE INDUSTRY <span className="text-amber-500">CONNECT</span>
+                    </h1>
+                    {isAdmin && <span className="px-2 py-0.5 rounded bg-amber-500/10 text-amber-500 text-[10px] font-black uppercase tracking-widest border border-amber-500/20">Admin Privileges</span>}
+                  </div>
+                  <p className="text-neutral-400 mt-1 text-xs md:text-sm font-medium">
+                    SaaS Outreach CRM & Vetted Hip-Hop industry network analytics.
+                  </p>
+                </div>
+                
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
+                  
+                  {/* Filter Global Search Bar */}
+                  <div className="relative w-full md:w-64">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Search size={15} className="text-neutral-500" />
+                    </div>
+                    <input
+                      type="text"
+                      placeholder={`Search ${activeTab.toLowerCase()}...`}
+                      className="block w-full pl-9 pr-3 py-2 border border-neutral-800 rounded-lg bg-neutral-900 text-neutral-200 placeholder-neutral-500 focus:outline-none focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition-all text-xs"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                    {searchQuery && (
+                      <button onClick={() => setSearchQuery("")} className="absolute inset-y-0 right-0 pr-3 flex items-center text-neutral-500 hover:text-white">
+                        <X size={14} />
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex gap-2 items-stretch">
+                    <button
+                      onClick={() => setViewFavoritesOnly(!viewFavoritesOnly)}
+                      className={`px-3 py-2 rounded-lg border transition-colors flex items-center justify-center gap-1.5 text-xs font-bold ${
+                        viewFavoritesOnly 
+                          ? "bg-amber-500/15 border-amber-500/40 text-amber-400" 
+                          : "bg-neutral-900 border-neutral-800 text-neutral-400 hover:bg-neutral-800 hover:text-white"
+                      }`}
+                      title="Toggle favorites"
+                    >
+                      <Star size={14} fill={viewFavoritesOnly ? "currentColor" : "none"} />
+                      <span>Favorites</span>
+                    </button>
+
+                    {isAdmin && (
+                      <>
+                        <button 
+                          onClick={() => setShowBulkUploadModal(true)}
+                          className="px-3 py-2 rounded-lg bg-neutral-800 border border-neutral-700/60 hover:bg-neutral-700 text-neutral-200 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors"
+                          title="Bulk Ingestion Tools"
+                        >
+                          <Upload size={14} />
+                          <span className="hidden sm:inline">Bulk CSV</span>
+                        </button>
+
+                        <button 
+                          onClick={openAddModal}
+                          className="flex items-center justify-center gap-1.5 bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold px-3 py-2 rounded-lg transition-colors text-xs shrink-0 shadow-lg shadow-amber-500/15"
+                        >
+                          <Plus size={14} />
+                          <span>Add</span>
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
             </div>
             
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
-              
-              {/* Filter Global Search Bar */}
-              <div className="relative w-full md:w-64">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Search size={15} className="text-neutral-500" />
-                </div>
-                <input
-                  type="text"
-                  placeholder={`Search ${activeTab.toLowerCase()}...`}
-                  className="block w-full pl-9 pr-3 py-2 border border-neutral-800 rounded-lg bg-neutral-900 text-neutral-200 placeholder-neutral-500 focus:outline-none focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition-all text-xs"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-                {searchQuery && (
-                  <button onClick={() => setSearchQuery("")} className="absolute inset-y-0 right-0 pr-3 flex items-center text-neutral-500 hover:text-white">
-                    <X size={14} />
+            {/* Navigation Categories Tabs */}
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="flex overflow-x-auto hide-scrollbar border-b border-neutral-800 gap-6">
+                {CATEGORIES.map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => setActiveTab(cat)}
+                    className={`whitespace-nowrap py-3.5 px-0.5 border-b-2 font-bold text-sm flex items-center gap-2 transition-colors tracking-tight ${
+                      activeTab === cat
+                        ? "border-amber-500 text-amber-500"
+                        : "border-transparent text-neutral-400 hover:text-neutral-200"
+                    }`}
+                  >
+                    {categoryIcons[cat]}
+                    {cat}
                   </button>
-                )}
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex gap-2 items-stretch">
-                <button
-                  onClick={() => setViewFavoritesOnly(!viewFavoritesOnly)}
-                  className={`px-3 py-2 rounded-lg border transition-colors flex items-center justify-center gap-1.5 text-xs font-bold ${
-                    viewFavoritesOnly 
-                      ? "bg-amber-500/15 border-amber-500/40 text-amber-400" 
-                      : "bg-neutral-900 border-neutral-800 text-neutral-400 hover:bg-neutral-800 hover:text-white"
-                  }`}
-                  title="Toggle favorites"
-                >
-                  <Star size={14} fill={viewFavoritesOnly ? "currentColor" : "none"} />
-                  <span>Favorites</span>
-                </button>
-
-                {isAdmin && (
-                  <>
-                    <button 
-                      onClick={() => setShowBulkUploadModal(true)}
-                      className="px-3 py-2 rounded-lg bg-neutral-800 border border-neutral-700/60 hover:bg-neutral-700 text-neutral-200 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors"
-                      title="Bulk Ingestion Tools"
-                    >
-                      <Upload size={14} />
-                      <span className="hidden sm:inline">Bulk CSV</span>
-                    </button>
-
-                    <button 
-                      onClick={openAddModal}
-                      className="flex items-center justify-center gap-1.5 bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold px-3 py-2 rounded-lg transition-colors text-xs shrink-0 shadow-lg shadow-amber-500/15"
-                    >
-                      <Plus size={14} />
-                      <span>Add</span>
-                    </button>
-                  </>
-                )}
+                ))}
               </div>
             </div>
-          </div>
-        </div>
-        
-        {/* Navigation Categories Tabs */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex overflow-x-auto hide-scrollbar border-b border-neutral-800 gap-6">
-            {CATEGORIES.map((cat) => (
-              <button
-                key={cat}
-                onClick={() => setActiveTab(cat)}
-                className={`whitespace-nowrap py-3.5 px-0.5 border-b-2 font-bold text-sm flex items-center gap-2 transition-colors tracking-tight ${
-                  activeTab === cat
-                    ? "border-amber-500 text-amber-500"
-                    : "border-transparent text-neutral-400 hover:text-neutral-200"
-                }`}
-              >
-                {categoryIcons[cat]}
-                {cat}
-              </button>
-            ))}
-          </div>
-        </div>
-      </header>
+          </header>
 
-      {/* Attributes Sub-filters Shelf */}
-      <section className="bg-neutral-900/40 border-b border-neutral-800/60 py-3 backdrop-blur-sm sticky top-[165px] md:top-[90px] z-30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-3 md:flex-row md:items-center justify-between text-xs">
+          {/* Attributes Sub-filters Shelf */}
+          <section className="bg-neutral-900/40 border-b border-neutral-800/60 py-3 backdrop-blur-sm sticky top-[165px] md:top-[90px] z-30">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-3 md:flex-row md:items-center justify-between text-xs">
+              
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                {/* Tags Specialities Filter */}
+                {availableTags.length > 1 && (
+                  <div className="flex items-center gap-2 overflow-x-auto hide-scrollbar shrink-0">
+                    <span className="text-neutral-500 font-bold uppercase tracking-wider flex items-center gap-1">
+                      <SlidersHorizontal size={11} /> Specialty:
+                    </span>
+                    <div className="flex gap-1">
+                      {availableTags.map(tag => (
+                        <button
+                          key={tag}
+                          onClick={() => setSelectedTag(tag)}
+                          className={`px-2 py-0.5 rounded text-[11px] font-medium border transition-all ${
+                            selectedTag === tag 
+                              ? "bg-amber-500/15 border-amber-500/40 text-amber-400 font-bold" 
+                              : "bg-neutral-800/40 border-neutral-700/40 text-neutral-400 hover:bg-neutral-800"
+                          }`}
+                        >
+                          {tag}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {availableTags.length > 1 && availableLocations.length > 1 && (
+                  <span className="hidden sm:inline text-neutral-800">|</span>
+                )}
+
+                {/* Location Filter */}
+                {availableLocations.length > 1 && (
+                  <div className="flex items-center gap-2 overflow-x-auto hide-scrollbar">
+                    <span className="text-neutral-500 font-bold uppercase tracking-wider flex items-center gap-1">
+                      <Filter size={11} /> Location:
+                    </span>
+                    <div className="flex gap-1">
+                      {availableLocations.map(loc => (
+                        <button
+                          key={loc}
+                          onClick={() => setSelectedLocation(loc)}
+                          className={`px-2 py-0.5 rounded text-[11px] font-medium border transition-all ${
+                            selectedLocation === loc 
+                              ? "bg-amber-500/15 border-amber-500/40 text-amber-400 font-bold" 
+                              : "bg-neutral-800/40 border-neutral-700/40 text-neutral-400 hover:bg-neutral-800"
+                          }`}
+                        >
+                          {loc}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Batch Email Copier Outreach utility */}
+              {filteredData.length > 0 && (
+                <button
+                  onClick={copyAllVisibleEmails}
+                  className="text-[11px] py-1 px-2 bg-neutral-800 hover:bg-neutral-700 border border-neutral-700/60 rounded text-neutral-300 font-bold flex items-center justify-center gap-1.5 transition-colors ml-auto md:ml-0 shadow"
+                >
+                  <Send size={11} />
+                  <span>Copy All Filtered Emails</span>
+                </button>
+              )}
+
+            </div>
+          </section>
+
+          {/* Grid Directory Content */}
+          <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 flex-grow w-full pb-16">
+            
+            {/* Statistics and status dashboard heading */}
+            <div className="mb-4 flex justify-between items-center">
+              <h2 className="text-xs font-bold text-neutral-400 uppercase tracking-widest font-mono flex items-center gap-1.5">
+                <Sparkles size={14} className="text-amber-500" />
+                Active Index File / {activeTab} 
+                <span className="text-neutral-600">({filteredData.length} records found)</span>
+              </h2>
+            </div>
+
+            {/* Catalog layout render */}
+            {filteredData.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+                {filteredData.map((item) => (
+                  <ContactCard 
+                    key={item.id} 
+                    data={item} 
+                    isAdmin={isAdmin}
+                    isBookmarked={bookmarks.includes(item.id)}
+                    onToggleBookmark={handleToggleBookmark}
+                    onEdit={openEditModal}
+                    onDelete={handleDeleteContact}
+                    onUpdateNotes={handleUpdateNotes}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-24 bg-neutral-800/20 rounded-2xl border border-neutral-800 border-dashed flex flex-col items-center max-w-xl mx-auto mt-8">
+                <Search className="mx-auto h-10 w-10 text-neutral-700 mb-3" />
+                <h3 className="text-base font-bold text-neutral-300 tracking-tight">No records located</h3>
+                <p className="text-neutral-500 text-xs mt-1 px-6">
+                  No matching index criteria aligns with your active attribute parameter configurations. Toggle favorites off or reset parameters.
+                </p>
+                <button 
+                  onClick={() => { setSearchQuery(""); setSelectedTag("All"); setSelectedLocation("All"); setViewFavoritesOnly(false); }}
+                  className="mt-5 text-xs font-bold text-amber-500 hover:text-amber-400 underline"
+                >
+                  Reset Search Parameters
+                </button>
+              </div>
+            )}
+          </main>
           
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            {/* Tags Specialities Filter */}
-            {availableTags.length > 1 && (
-              <div className="flex items-center gap-2 overflow-x-auto hide-scrollbar shrink-0">
-                <span className="text-neutral-500 font-bold uppercase tracking-wider flex items-center gap-1">
-                  <SlidersHorizontal size={11} /> Specialty:
-                </span>
-                <div className="flex gap-1">
-                  {availableTags.map(tag => (
-                    <button
-                      key={tag}
-                      onClick={() => setSelectedTag(tag)}
-                      className={`px-2 py-0.5 rounded text-[11px] font-medium border transition-all ${
-                        selectedTag === tag 
-                          ? "bg-amber-500/15 border-amber-500/40 text-amber-400 font-bold" 
-                          : "bg-neutral-800/40 border-neutral-700/40 text-neutral-400 hover:bg-neutral-800"
-                      }`}
-                    >
-                      {tag}
-                    </button>
-                  ))}
-                </div>
+          {/* Footer & Admin Controls */}
+          <footer className="bg-neutral-950 border-t border-neutral-900 mt-auto shadow-inner">
+            <div className="max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center text-xs font-medium text-neutral-500 gap-3">
+              <p>© 2026 The Industry Connect Ecosystem</p>
+              <div className="flex items-center gap-3">
+                {userEmail && <span className="text-neutral-400">Authenticated: <strong className="text-amber-500 font-bold">{userEmail}</strong></span>}
+                <button onClick={handleSignOutUser} className="flex items-center gap-1.5 text-neutral-400 hover:text-white transition-colors font-bold">
+                  <LogOut size={12} /> Log Out
+                </button>
               </div>
-            )}
+            </div>
+          </footer>
 
-            {availableTags.length > 1 && availableLocations.length > 1 && (
-              <span className="hidden sm:inline text-neutral-800">|</span>
-            )}
-
-            {/* Location Filter */}
-            {availableLocations.length > 1 && (
-              <div className="flex items-center gap-2 overflow-x-auto hide-scrollbar">
-                <span className="text-neutral-500 font-bold uppercase tracking-wider flex items-center gap-1">
-                  <Filter size={11} /> Location:
-                </span>
-                <div className="flex gap-1">
-                  {availableLocations.map(loc => (
-                    <button
-                      key={loc}
-                      onClick={() => setSelectedLocation(loc)}
-                      className={`px-2 py-0.5 rounded text-[11px] font-medium border transition-all ${
-                        selectedLocation === loc 
-                          ? "bg-amber-500/15 border-amber-500/40 text-amber-400 font-bold" 
-                          : "bg-neutral-800/40 border-neutral-700/40 text-neutral-400 hover:bg-neutral-800"
-                      }`}
-                    >
-                      {loc}
-                    </button>
-                  ))}
+          {/* CSV Bulk Ingestion Tool Panel Modal */}
+          {showBulkUploadModal && (
+            <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+              <div className="bg-neutral-900 border border-neutral-800 rounded-xl w-full max-w-xl shadow-2xl relative">
+                <div className="p-4 border-b border-neutral-800 flex justify-between items-center">
+                  <h2 className="text-md font-bold text-white flex items-center gap-2">
+                    <FileSpreadsheet className="text-amber-500" size={18} />
+                    <span>Bulk CSV Ingestion Matrix</span>
+                  </h2>
+                  <button onClick={() => setShowBulkUploadModal(false)} className="text-neutral-500 hover:text-white p-1">
+                    <X size={18} />
+                  </button>
                 </div>
-              </div>
-            )}
-          </div>
 
-          {/* Batch Email Copier Outreach utility */}
-          {filteredData.length > 0 && (
-            <button
-              onClick={copyAllVisibleEmails}
-              className="text-[11px] py-1 px-2 bg-neutral-800 hover:bg-neutral-700 border border-neutral-700/60 rounded text-neutral-300 font-bold flex items-center justify-center gap-1.5 transition-colors ml-auto md:ml-0 shadow"
-            >
-              <Send size={11} />
-              <span>Copy All Filtered Emails</span>
-            </button>
+                <form onSubmit={handleBulkIngest} className="p-5 space-y-4">
+                  <p className="text-xs text-neutral-400 leading-relaxed">
+                    Ingest lists directly into the active <strong className="text-amber-400">"{activeTab}"</strong> index directory collection. Ensure the first line represents column schema mapping:
+                    <code className="block mt-2 p-2 bg-neutral-950 text-amber-500/80 rounded border border-neutral-800/80 font-mono text-[10px]">
+                      title, subtitle, name, role, email, phone, location, tags
+                    </code>
+                  </p>
+
+                  <textarea
+                    value={bulkCsvText}
+                    onChange={(e) => setBulkCsvText(e.target.value)}
+                    placeholder="Empire Distribution, Tina Davis, Deals, info@empire.com, N/A, Sylmar CA, Record Label"
+                    rows={8}
+                    className="w-full text-xs p-3 font-mono bg-neutral-950 border border-neutral-800 rounded-lg text-amber-300 placeholder-neutral-700 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 leading-normal"
+                    required
+                  />
+
+                  {bulkError && <p className="text-red-400 text-xs font-semibold bg-red-950/25 p-2 rounded border border-red-800/20">{bulkError}</p>}
+
+                  <div className="flex justify-end gap-3 pt-3 border-t border-neutral-800 text-xs">
+                    <button 
+                      type="button" onClick={() => setShowBulkUploadModal(false)}
+                      className="px-4 py-2 rounded text-neutral-400 hover:text-white"
+                    >
+                      Cancel
+                    </button>
+                    <button 
+                      type="submit" disabled={isSaving}
+                      className="px-5 py-2 rounded bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold disabled:opacity-50 tracking-wider flex items-center gap-1.5 shadow"
+                    >
+                      <RefreshCw size={12} className={isSaving ? "animate-spin" : ""} />
+                      {isSaving ? "Parsing Row Blocks..." : "Ingest CSV Data"}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
           )}
 
-        </div>
-      </section>
-
-      {/* Grid Directory Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 flex-grow w-full pb-16">
-        
-        {/* Statistics and status dashboard heading */}
-        <div className="mb-4 flex justify-between items-center">
-          <h2 className="text-xs font-bold text-neutral-400 uppercase tracking-widest font-mono flex items-center gap-1.5">
-            <Sparkles size={14} className="text-amber-500" />
-            Active Index File / {activeTab} 
-            <span className="text-neutral-600">({filteredData.length} records found)</span>
-          </h2>
-        </div>
-
-        {/* Catalog layout render */}
-        {filteredData.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-            {filteredData.map((item) => (
-              <ContactCard 
-                key={item.id} 
-                data={item} 
-                isAdmin={isAdmin}
-                isBookmarked={bookmarks.includes(item.id)}
-                onToggleBookmark={handleToggleBookmark}
-                onEdit={openEditModal}
-                onDelete={handleDeleteContact}
-                onUpdateNotes={handleUpdateNotes}
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-24 bg-neutral-800/20 rounded-2xl border border-neutral-800 border-dashed flex flex-col items-center max-w-xl mx-auto mt-8">
-            <Search className="mx-auto h-10 w-10 text-neutral-700 mb-3" />
-            <h3 className="text-base font-bold text-neutral-300 tracking-tight">No records located</h3>
-            <p className="text-neutral-500 text-xs mt-1 px-6">
-              No matching index criteria aligns with your active attribute parameter configurations. Toggle favorites off or reset parameters.
-            </p>
-            <button 
-              onClick={() => { setSearchQuery(""); setSelectedTag("All"); setSelectedLocation("All"); setViewFavoritesOnly(false); }}
-              className="mt-5 text-xs font-bold text-amber-500 hover:text-amber-400 underline"
-            >
-              Reset Search Parameters
-            </button>
-          </div>
-        )}
-      </main>
-      
-      {/* Footer & Admin Controls */}
-      <footer className="bg-neutral-950 border-t border-neutral-900 mt-auto shadow-inner">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center text-xs font-medium text-neutral-500 gap-3">
-          <p>© 2026 The Industry Connect Ecosystem</p>
-          <div className="flex items-center gap-3">
-            {userEmail && <span className="text-neutral-400">Authenticated: <strong className="text-amber-500 font-bold">{userEmail}</strong></span>}
-            {!isAdmin ? (
-              <button onClick={() => { setShowAdminLogin(true); setLoginError(""); }} className="flex items-center gap-1.5 hover:text-neutral-300 transition-colors">
-                <Lock size={12} /> Admin Workspace Login
-              </button>
-            ) : (
-              <button onClick={handleAdminSignOut} className="flex items-center gap-1.5 text-amber-500 hover:text-amber-400 transition-colors font-bold">
-                <LogOut size={12} /> Exit Workspace Session
-              </button>
-            )}
-          </div>
-        </div>
-      </footer>
-
-      {/* Admin Credentials Login/Registration Panel Modal */}
-      {showAdminLogin && (
-        <div className="fixed inset-0 bg-black/75 backdrop-blur-md z-50 flex items-center justify-center p-4">
-          <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-6 w-full max-w-md shadow-2xl relative">
-            <button onClick={() => setShowAdminLogin(false)} className="absolute top-4 right-4 text-neutral-500 hover:text-white">
-              <X size={18} />
-            </button>
-            <div className="flex items-center justify-center w-10 h-10 bg-amber-500/10 rounded-lg mb-3 mx-auto">
-              <Lock className="text-amber-500" size={20} />
-            </div>
-            <h3 className="text-lg font-bold text-white text-center tracking-tight mb-1">
-              {isRegistering ? "Register Admin Account" : "Administrative Authorization Portal"}
-            </h3>
-            <p className="text-neutral-400 text-xs text-center mb-5">
-              Secure authentication allows multi-device writing and log notes editing.
-            </p>
-            
-            <form onSubmit={handleAdminAuthAction} className="space-y-4">
-              <div>
-                <label className="block text-[10px] uppercase tracking-wider font-bold text-neutral-500 mb-1">Email Address</label>
-                <input
-                  type="email"
-                  value={authEmail}
-                  onChange={(e) => setAuthEmail(e.target.value)}
-                  placeholder="admin@theindustryconnect.com"
-                  className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-2.5 text-white placeholder-neutral-700 focus:outline-none focus:border-amber-500 text-xs font-medium"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-[10px] uppercase tracking-wider font-bold text-neutral-500 mb-1">Password</label>
-                <input
-                  type="password"
-                  value={authPassword}
-                  onChange={(e) => setAuthPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-2.5 text-white placeholder-neutral-700 focus:outline-none focus:border-amber-500 text-xs font-medium"
-                  required
-                />
-              </div>
-
-              {loginError && <p className="text-red-400 text-[11px] text-center font-semibold bg-red-900/10 border border-red-800/20 p-2 rounded">{loginError}</p>}
-
-              <button type="submit" className="w-full bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold py-2.5 rounded-lg transition-colors text-xs uppercase tracking-wider">
-                {isRegistering ? "Create Admin Credentials" : "Authorize Session"}
-              </button>
-
-              <div className="text-center pt-2">
-                <button 
-                  type="button" 
-                  onClick={() => { setIsRegistering(!isRegistering); setLoginError(""); }} 
-                  className="text-neutral-400 hover:text-amber-500 transition-colors text-xs underline"
-                >
-                  {isRegistering ? "Existing Administrator? Log In" : "Need to register first admin? Sign Up"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* CSV Bulk Ingestion Tool Panel Modal */}
-      {showBulkUploadModal && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
-          <div className="bg-neutral-900 border border-neutral-800 rounded-xl w-full max-w-xl shadow-2xl relative">
-            <div className="p-4 border-b border-neutral-800 flex justify-between items-center">
-              <h2 className="text-md font-bold text-white flex items-center gap-2">
-                <FileSpreadsheet className="text-amber-500" size={18} />
-                <span>Bulk CSV Ingestion Matrix</span>
-              </h2>
-              <button onClick={() => setShowBulkUploadModal(false)} className="text-neutral-500 hover:text-white p-1">
-                <X size={18} />
-              </button>
-            </div>
-
-            <form onSubmit={handleBulkIngest} className="p-5 space-y-4">
-              <p className="text-xs text-neutral-400 leading-relaxed">
-                Ingest lists directly into the active <strong className="text-amber-400">"{activeTab}"</strong> index directory collection. Ensure the first line represents column schema mapping:
-                <code className="block mt-2 p-2 bg-neutral-950 text-amber-500/80 rounded border border-neutral-800/80 font-mono text-[10px]">
-                  title, subtitle, name, role, email, phone, location, tags
-                </code>
-              </p>
-
-              <textarea
-                value={bulkCsvText}
-                onChange={(e) => setBulkCsvText(e.target.value)}
-                placeholder="Empire Distribution, Tina Davis, Deals, info@empire.com, N/A, Sylmar CA, Record Label"
-                rows={8}
-                className="w-full text-xs p-3 font-mono bg-neutral-950 border border-neutral-800 rounded-lg text-amber-300 placeholder-neutral-700 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 leading-normal"
-                required
-              />
-
-              {bulkError && <p className="text-red-400 text-xs font-semibold bg-red-950/25 p-2 rounded border border-red-800/20">{bulkError}</p>}
-
-              <div className="flex justify-end gap-3 pt-3 border-t border-neutral-800 text-xs">
-                <button 
-                  type="button" onClick={() => setShowBulkUploadModal(false)}
-                  className="px-4 py-2 rounded text-neutral-400 hover:text-white"
-                >
-                  Cancel
-                </button>
-                <button 
-                  type="submit" disabled={isSaving}
-                  className="px-5 py-2 rounded bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold disabled:opacity-50 tracking-wider flex items-center gap-1.5 shadow"
-                >
-                  <RefreshCw size={12} className={isSaving ? "animate-spin" : ""} />
-                  {isSaving ? "Parsing Row Blocks..." : "Ingest CSV Data"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Standard Individual Contact Modals */}
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-neutral-900 border border-neutral-800 rounded-xl w-full max-w-xl shadow-2xl relative my-8">
-            <div className="sticky top-0 bg-neutral-900 border-b border-neutral-800 p-4 rounded-t-xl flex justify-between items-center z-10">
-              <h2 className="text-lg font-bold text-white flex items-center gap-2 tracking-tight">
-                {editingContact ? <Edit3 size={18} className="text-amber-500"/> : <Plus size={18} className="text-amber-500"/>}
-                {editingContact ? "Modify Directory Index" : "Append New Directory Index"}
-              </h2>
-              <button onClick={() => setIsModalOpen(false)} className="text-neutral-500 hover:text-white p-1">
-                <X size={18} />
-              </button>
-            </div>
-            
-            <form onSubmit={handleSaveContact} className="p-5 space-y-4 text-xs font-medium">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Standard Individual Contact Modals */}
+          {isModalOpen && (
+            <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+              <div className="bg-neutral-900 border border-neutral-800 rounded-xl w-full max-w-xl shadow-2xl relative my-8">
+                <div className="sticky top-0 bg-neutral-900 border-b border-neutral-800 p-4 rounded-t-xl flex justify-between items-center z-10">
+                  <h2 className="text-lg font-bold text-white flex items-center gap-2 tracking-tight">
+                    {editingContact ? <Edit3 size={18} className="text-amber-500"/> : <Plus size={18} className="text-amber-500"/>}
+                    {editingContact ? "Modify Directory Index" : "Append New Directory Index"}
+                  </h2>
+                  <button onClick={() => setIsModalOpen(false)} className="text-neutral-500 hover:text-white p-1">
+                    <X size={18} />
+                  </button>
+                </div>
                 
-                <div className="space-y-3">
+                <form onSubmit={handleSaveContact} className="p-5 space-y-4 text-xs font-medium">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-neutral-400 mb-1 font-bold uppercase tracking-wider">Category *</label>
+                        <select 
+                          name="category" 
+                          value={formData.category || ""} 
+                          onChange={handleFormChange}
+                          required
+                          className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-amber-500"
+                        >
+                          {CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                        </select>
+                      </div>
+                      
+                      <div>
+                        <label className="block text-neutral-400 mb-1 font-bold uppercase tracking-wider">Company / Entity Title *</label>
+                        <input 
+                          type="text" name="title" value={formData.title || ""} onChange={handleFormChange} required
+                          placeholder="e.g. Culture Kings"
+                          className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-amber-500"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-neutral-400 mb-1 font-bold uppercase tracking-wider">Subtitle / Specialty</label>
+                        <input 
+                          type="text" name="subtitle" value={formData.subtitle || ""} onChange={handleFormChange}
+                          placeholder="e.g. Rare Sneakers"
+                          className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-amber-500"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-neutral-400 mb-1 font-bold uppercase tracking-wider">Filter Tag Category</label>
+                        <input 
+                          type="text" name="tags" value={formData.tags || ""} onChange={handleFormChange}
+                          placeholder="Streetwear, Sneakers, Collectibles, Record Label"
+                          className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-amber-500"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-neutral-400 mb-1 font-bold uppercase tracking-wider">Key Contact Person Name</label>
+                        <input 
+                          type="text" name="name" value={formData.name || ""} onChange={handleFormChange}
+                          placeholder="e.g. Tina Davis"
+                          className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-amber-500"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-neutral-400 mb-1 font-bold uppercase tracking-wider">Operational Role Title</label>
+                        <input 
+                          type="text" name="role" value={formData.role || ""} onChange={handleFormChange}
+                          placeholder="e.g. Lead Buyer / President"
+                          className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-amber-500"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-neutral-400 mb-1 font-bold uppercase tracking-wider">Email Route</label>
+                        <input 
+                          type="text" name="email" value={formData.email || ""} onChange={handleFormChange}
+                          placeholder="e.g. info@domain.com"
+                          className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-amber-500"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-neutral-400 mb-1 font-bold uppercase tracking-wider">Phone Link</label>
+                        <input 
+                          type="text" name="phone" value={formData.phone || ""} onChange={handleFormChange}
+                          placeholder="e.g. (310) 555-1212"
+                          className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-amber-500"
+                        />
+                      </div>
+                    </div>
+
+                  </div>
+
                   <div>
-                    <label className="block text-neutral-400 mb-1 font-bold uppercase tracking-wider">Catalog Target *</label>
-                    <select 
-                      name="category" 
-                      value={formData.category || ""} 
-                      onChange={handleFormChange}
-                      required
+                    <label className="block text-neutral-400 mb-1 font-bold uppercase tracking-wider">Physical Location / Address</label>
+                    <input 
+                      type="text" name="location" value={formData.location || ""} onChange={handleFormChange}
+                      placeholder="e.g. Los Angeles, CA or 451 N Fairfax Ave"
                       className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-amber-500"
+                    />
+                  </div>
+
+                  <div className="pt-4 border-t border-neutral-800 flex justify-end gap-3 text-sm">
+                    <button 
+                      type="button" onClick={() => setIsModalOpen(false)}
+                      className="px-4 py-2 rounded-lg text-neutral-400 hover:text-white transition-colors"
                     >
-                      {CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
-                    </select>
+                      Cancel
+                    </button>
+                    <button 
+                      type="submit" disabled={isSaving}
+                      className="px-5 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold transition-colors disabled:opacity-50 shadow-md shadow-amber-500/10"
+                    >
+                      {isSaving ? "Saving Metrics..." : "Commit Record"}
+                    </button>
                   </div>
-                  
-                  <div>
-                    <label className="block text-neutral-400 mb-1 font-bold uppercase tracking-wider">Company / Entity Title *</label>
-                    <input 
-                      type="text" name="title" value={formData.title || ""} onChange={handleFormChange} required
-                      placeholder="e.g. Culture Kings"
-                      className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-amber-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-neutral-400 mb-1 font-bold uppercase tracking-wider">Subtitle / Specialty</label>
-                    <input 
-                      type="text" name="subtitle" value={formData.subtitle || ""} onChange={handleFormChange}
-                      placeholder="e.g. Rare Sneakers"
-                      className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-amber-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-neutral-400 mb-1 font-bold uppercase tracking-wider">Filter Tag Category</label>
-                    <input 
-                      type="text" name="tags" value={formData.tags || ""} onChange={handleFormChange}
-                      placeholder="Streetwear, Sneakers, Collectibles, Record Label"
-                      className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-amber-500"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-3">
-                  <div>
-                    <label className="block text-neutral-400 mb-1 font-bold uppercase tracking-wider">Key Contact Person Name</label>
-                    <input 
-                      type="text" name="name" value={formData.name || ""} onChange={handleFormChange}
-                      placeholder="e.g. Tina Davis"
-                      className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-amber-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-neutral-400 mb-1 font-bold uppercase tracking-wider">Operational Role Title</label>
-                    <input 
-                      type="text" name="role" value={formData.role || ""} onChange={handleFormChange}
-                      placeholder="e.g. Lead Buyer / President"
-                      className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-amber-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-neutral-400 mb-1 font-bold uppercase tracking-wider">Email Route</label>
-                    <input 
-                      type="text" name="email" value={formData.email || ""} onChange={handleFormChange}
-                      placeholder="e.g. info@domain.com"
-                      className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-amber-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-neutral-400 mb-1 font-bold uppercase tracking-wider">Phone Link</label>
-                    <input 
-                      type="text" name="phone" value={formData.phone || ""} onChange={handleFormChange}
-                      placeholder="e.g. (310) 555-1212"
-                      className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-amber-500"
-                    />
-                  </div>
-                </div>
-
+                </form>
               </div>
-
-              <div>
-                <label className="block text-neutral-400 mb-1 font-bold uppercase tracking-wider">Physical Location / Address</label>
-                <input 
-                  type="text" name="location" value={formData.location || ""} onChange={handleFormChange}
-                  placeholder="e.g. Los Angeles, CA or 451 N Fairfax Ave"
-                  className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-amber-500"
-                />
-              </div>
-
-              <div className="pt-4 border-t border-neutral-800 flex justify-end gap-3 text-sm">
-                <button 
-                  type="button" onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 rounded-lg text-neutral-400 hover:text-white transition-colors"
-                >
-                  Cancel
-                </button>
-                <button 
-                  type="submit" disabled={isSaving}
-                  className="px-5 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold transition-colors disabled:opacity-50 shadow-md shadow-amber-500/10"
-                >
-                  {isSaving ? "Saving Metrics..." : "Commit Record"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+            </div>
+          )}
+        </>
       )}
 
       {/* Webkit scroll override overrides layout */}
